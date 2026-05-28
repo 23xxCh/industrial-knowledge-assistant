@@ -10,7 +10,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 import os
 
-OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "CV-陈熙贤-智能制造工程师-v2.pdf")
+OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "CV-陈熙贤-v3.pdf")
 
 BLACK = HexColor("#000000")
 DARK = HexColor("#333333")
@@ -95,14 +95,14 @@ class CV:
         self.y -= 22
 
     def entry(self, left, right):
-        self._ck(18)
+        self._ck(22)
         self.c.setFont(BOLD, 11)
         self.c.setFillColor(BLACK)
         self.c.drawString(ML + 4, self.y, left)
         self.c.setFont(FONT, 9.5)
         self.c.setFillColor(GRAY)
         self.c.drawRightString(PW - MR, self.y, right)
-        self.y -= 17
+        self.y -= 20
 
     def sub(self, left, right):
         self.c.setFont(FONT, 10)
@@ -111,42 +111,42 @@ class CV:
         self.c.setFont(FONT, 9.5)
         self.c.setFillColor(GRAY)
         self.c.drawRightString(PW - MR, self.y, right)
-        self.y -= 15
+        self.y -= 18
 
     def bullet(self, text, indent=14):
-        self._ck(28)
+        self._ck(35)
         x = ML + indent
         # bullet
         self.c.setFont(FONT, 8)
         self.c.setFillColor(BLUE)
         self.c.drawString(x - 9, self.y, "\u25cf")
         # 文字
-        self.c.setFont(FONT, 10)
+        self.c.setFont(FONT, 9.5)
         self.c.setFillColor(DARK)
         self._wrap(text, x, CW=PW - MR - x - 2)
-        self.y -= 3
+        self.y -= 5
 
     def skill(self, cat, val):
-        self._ck(16)
+        self._ck(20)
         x = ML + 14
         self.c.setFont(FONT, 8)
         self.c.setFillColor(BLUE)
         self.c.drawString(x - 9, self.y, "\u25cf")
-        self.c.setFont(BOLD, 10)
+        self.c.setFont(BOLD, 9.5)
         self.c.setFillColor(BLACK)
         self.c.drawString(x, self.y, cat)
-        cw = self._w(cat, BOLD, 10)
-        self.c.setFont(FONT, 10)
+        cw = self._w(cat, BOLD, 9.5)
+        self.c.setFont(FONT, 9.5)
         self.c.setFillColor(DARK)
         self._wrap(val, x + cw, CW=PW - MR - x - cw - 2)
-        self.y -= 2
+        self.y -= 4
 
     def _wrap(self, text, x, CW=400):
-        """中文友好换行 - 逐字符测量"""
+        """中文友好换行 - 行高 20 避免重叠"""
         font = FONT
-        size = 10
+        size = 9.5
         line = ""
-        lh = 14.5  # 行高
+        lh = 20  # 行高（微软雅黑需要更大行高）
         for ch in text:
             test = line + ch
             if self._w(test, font, size) > CW and line:
