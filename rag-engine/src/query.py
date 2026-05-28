@@ -5,8 +5,11 @@ Hybrid 检索：Dense(Chroma) + Sparse(BM25) + RRF 融合
 """
 
 import os
+import logging
 from typing import Optional, Generator
 from dataclasses import dataclass, field
+
+log = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 
@@ -29,32 +32,51 @@ from .ingest import EmbeddingGenerator, ChromaStore, BM25Index
 # ============================================================
 
 class HybridRetriever:
-    """Dense + Sparse + RRF 融合检索"""
+    """Dense + Sparse + RRF 融合检索，支持 BM25-only 降级模式"""
 
     def __init__(self, config: RAGConfig = None):
         self.config = config or RAGConfig()
-        self.embedding_gen = EmbeddingGenerator(model=self.config.embedding_model)
-        self.chroma_store = ChromaStore(persist_dir=self.config.chroma_persist_dir)
         self.bm25_index = BM25Index()
-        # 尝试加载已有 BM25 索引
         self.bm25_index.load()
+        # Embedding 和 Chroma 可选（无 API Key 时降级为 BM25-only）
+        self._embedding_gen = None
+        self._chroma_store = None
+        self._has_dense = False
+        try:
+            api_key = os.getenv("OPENAI_API_KEY", "")
+            if api_key and not api_key.startswith("sk-151"):
+                self._embedding_gen = EmbeddingGenerator(model=self.config.embedding_model)
+                self._chroma_store = ChromaStore(persist_dir=self.config.chroma_persist_dir)
+                self._has_dense = True
+                log.info("[RAG] Hybrid mode: Dense + Sparse + RRF")
+            else:
+                log.info("[RAG] BM25-only mode (no valid embedding API key)")
+        except Exception as e:
+            log.warning(f"[RAG] Dense unavailable, falling back to BM25-only: {e}")
 
     def retrieve(self, query: str) -> list[RetrievalResult]:
-        """执行 Hybrid 检索"""
-        # Dense 检索
-        query_embedding = self.embedding_gen.embed_query(query)
-        dense_docs = self.chroma_store.query(query_embedding, top_k=self.config.dense_top_k)
-        dense_results = [
-            RetrievalResult(
-                doc_id=doc["doc_id"],
-                content=doc["content"],
-                score=1.0 - doc["distance"],  # cosine distance → similarity
-                rank=i + 1,
-                source="dense",
-                metadata=doc["metadata"],
-            )
-            for i, doc in enumerate(dense_docs)
-        ]
+        """执行检索（Hybrid 或 BM25-only）"""
+        dense_results = []
+        sparse_results = []
+
+        # Dense 检索（可选）
+        if self._has_dense and self._embedding_gen and self._chroma_store:
+            try:
+                query_embedding = self._embedding_gen.embed_query(query)
+                dense_docs = self._chroma_store.query(query_embedding, top_k=self.config.dense_top_k)
+                dense_results = [
+                    RetrievalResult(
+                        doc_id=doc["doc_id"],
+                        content=doc["content"],
+                        score=1.0 - doc["distance"],
+                        rank=i + 1,
+                        source="dense",
+                        metadata=doc["metadata"],
+                    )
+                    for i, doc in enumerate(dense_docs)
+                ]
+            except Exception as e:
+                log.warning(f"Dense retrieval failed: {e}")
 
         # Sparse 检索 (BM25)
         sparse_docs = self.bm25_index.query(query, top_k=self.config.sparse_top_k)
@@ -69,6 +91,12 @@ class HybridRetriever:
             )
             for i, doc in enumerate(sparse_docs)
         ]
+
+        # 如果只有一路，直接返回
+        if not dense_results:
+            return sparse_results[:self.config.fusion_top_k]
+        if not sparse_results:
+            return dense_results[:self.config.fusion_top_k]
 
         # RRF 融合
         fused = reciprocal_rank_fusion(
