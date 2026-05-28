@@ -1,295 +1,158 @@
 """
-制造业 AI 应用工程师 简历生成器
-排版参考：陈广凯简历风格
-- 页面：US Letter (612x792 pt)
-- 姓名：居中 18pt 加粗
-- 联系方式：居中 10pt，• 分隔
-- 模块标题：14pt 加粗 + 下划线
-- 正文：10pt，公司/学校名加粗，日期右对齐
-- Bullet：● 开头
+陈熙贤 - 智能制造工程师 简历生成器
 """
-
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
-from reportlab.lib.colors import HexColor, black
+from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib.styles import getSampleStyleSheet
 import os
 
-# ============================================================
-# 配置
-# ============================================================
+OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "CV-陈熙贤-智能制造工程师.pdf")
 
-OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "CV-制造业AI应用工程师.pdf")
-
-# 颜色
 BLACK = HexColor("#000000")
 DARK_GRAY = HexColor("#333333")
 GRAY = HexColor("#666666")
 BLUE = HexColor("#1a5276")
-LIGHT_BLUE = HexColor("#2980b9")
 
-# 页面尺寸
-PAGE_W, PAGE_H = A4  # 595 x 842 pt
-MARGIN_LEFT = 50
-MARGIN_RIGHT = 50
-MARGIN_TOP = 40
-CONTENT_W = PAGE_W - MARGIN_LEFT - MARGIN_RIGHT
+PAGE_W, PAGE_H = A4
+ML = 50
+MR = 50
+MT = 40
+CW = PAGE_W - ML - MR
 
-# ============================================================
-# 字体注册（需要系统中文字体）
-# ============================================================
-
-# 尝试注册中文字体
 CHINESE_FONT = "Helvetica"
 CHINESE_BOLD = "Helvetica-Bold"
-
-for font_path, font_name in [
-    ("C:/Windows/Fonts/msyh.ttc", "MicrosoftYaHei"),
-    ("C:/Windows/Fonts/msyhbd.ttc", "MicrosoftYaHeiBold"),
-    ("C:/Windows/Fonts/simhei.ttf", "SimHei"),
-    ("C:/Windows/Fonts/simsun.ttc", "SimSun"),
-]:
-    if os.path.exists(font_path):
+for fp, fn in [("C:/Windows/Fonts/msyh.ttc","MSYH"),("C:/Windows/Fonts/msyhbd.ttc","MSYHBD"),("C:/Windows/Fonts/simhei.ttf","SimHei")]:
+    if os.path.exists(fp):
         try:
-            pdfmetrics.registerFont(TTFont(font_name, font_path))
-            if "msyh" in font_path and "bd" not in font_path:
-                CHINESE_FONT = font_name
-            elif "msyhbd" in font_path:
-                CHINESE_BOLD = font_name
-            elif "simhei" in font_path:
-                CHINESE_FONT = font_name
-                CHINESE_BOLD = font_name
-        except:
-            pass
+            pdfmetrics.registerFont(TTFont(fn, fp))
+            if "bd" in fp: CHINESE_BOLD = fn
+            elif "msyh" in fp: CHINESE_FONT = fn
+            elif "simhei" in fp: CHINESE_FONT = fn; CHINESE_BOLD = fn
+        except: pass
 
-# 如果没找到微软雅黑，用 SimHei
-if CHINESE_FONT == "Helvetica":
-    for font_path, font_name in [
-        ("C:/Windows/Fonts/simhei.ttf", "SimHei"),
-        ("C:/Windows/Fonts/simsun.ttc", "SimSun"),
-    ]:
-        if os.path.exists(font_path):
-            try:
-                pdfmetrics.registerFont(TTFont(font_name, font_name=font_path))
-                CHINESE_FONT = font_name
-                CHINESE_BOLD = font_name
-                break
-            except:
-                pass
-
-print(f"Using font: {CHINESE_FONT} / {CHINESE_BOLD}")
-
-
-# ============================================================
-# 绘制函数
-# ============================================================
-
-class ResumeBuilder:
-    def __init__(self, filename):
-        self.c = canvas.Canvas(filename, pagesize=A4)
-        self.y = PAGE_H - MARGIN_TOP  # 当前 y 坐标（从顶部开始）
-        self.page = 1
-
-    def check_space(self, needed=30):
-        """检查是否需要换页"""
-        if self.y < MARGIN_TOP + needed:
-            self.c.showPage()
-            self.y = PAGE_H - MARGIN_TOP
-            self.page += 1
-
-    def draw_name(self, name):
-        """绘制姓名（居中，大号加粗）"""
-        self.c.setFont(CHINESE_BOLD, 20)
-        self.c.setFillColor(BLACK)
-        tw = self.c.stringWidth(name, CHINESE_BOLD, 20)
-        self.c.drawString((PAGE_W - tw) / 2, self.y, name)
-        self.y -= 25
-
-    def draw_contact(self, items):
-        """绘制联系方式（居中，• 分隔）"""
-        self.c.setFont(CHINESE_FONT, 9)
-        self.c.setFillColor(GRAY)
-        line = "  •  ".join(items)
+class RB:
+    def __init__(self, fn):
+        self.c = canvas.Canvas(fn, pagesize=A4)
+        self.y = PAGE_H - MT
+    def ck(self, n=30):
+        if self.y < MT + n: self.c.showPage(); self.y = PAGE_H - MT
+    def name(self, t):
+        self.c.setFont(CHINESE_BOLD, 20); self.c.setFillColor(BLACK)
+        tw = self.c.stringWidth(t, CHINESE_BOLD, 20)
+        self.c.drawString((PAGE_W-tw)/2, self.y, t); self.y -= 25
+    def contact(self, items):
+        self.c.setFont(CHINESE_FONT, 9); self.c.setFillColor(GRAY)
+        line = "  \u2022  ".join(items)
         tw = self.c.stringWidth(line, CHINESE_FONT, 9)
-        self.c.drawString((PAGE_W - tw) / 2, self.y, line)
-        self.y -= 22
+        self.c.drawString((PAGE_W-tw)/2, self.y, line); self.y -= 22
+    def sec(self, t):
+        self.ck(40); self.c.setFont(CHINESE_BOLD, 13); self.c.setFillColor(BLUE)
+        self.c.drawString(ML, self.y, t)
+        self.c.setStrokeColor(BLUE); self.c.setLineWidth(1.5)
+        self.c.line(ML, self.y-3, PAGE_W-MR, self.y-3); self.y -= 20
+    def hdr(self, l, r, bold=True):
+        self.ck(20); f = CHINESE_BOLD if bold else CHINESE_FONT
+        self.c.setFont(f, 10.5); self.c.setFillColor(BLACK)
+        self.c.drawString(ML+4, self.y, l)
+        self.c.setFont(CHINESE_FONT, 9.5); self.c.setFillColor(GRAY)
+        self.c.drawRightString(PAGE_W-MR, self.y, r); self.y -= 16
+    def sub(self, l, r):
+        self.c.setFont(CHINESE_FONT, 9.5); self.c.setFillColor(DARK_GRAY)
+        self.c.drawString(ML+4, self.y, l)
+        self.c.drawRightString(PAGE_W-MR, self.y, r); self.y -= 14
+    def bul(self, t, indent=12):
+        self.ck(30); x = ML + indent
+        self.c.setFont(CHINESE_FONT, 8); self.c.setFillColor(BLUE)
+        self.c.drawString(x-8, self.y, "\u25cf")
+        self.c.setFont(CHINESE_FONT, 9.5); self.c.setFillColor(DARK_GRAY)
+        cl = ""
+        for ch in t:
+            tl = cl + ch
+            if self.c.stringWidth(tl, CHINESE_FONT, 9.5) > CW - indent - 5:
+                self.c.drawString(x, self.y, cl); self.y -= 13; cl = ch
+            else: cl = tl
+        if cl: self.c.drawString(x, self.y, cl)
+        self.y -= 2
+    def sk(self, cat, con):
+        self.ck(15); x = ML + 12
+        self.c.setFont(CHINESE_FONT, 8); self.c.setFillColor(BLUE)
+        self.c.drawString(x-8, self.y, "\u25cf")
+        self.c.setFont(CHINESE_BOLD, 9.5); self.c.setFillColor(BLACK)
+        self.c.drawString(x, self.y, cat)
+        cw = self.c.stringWidth(cat, CHINESE_BOLD, 9.5)
+        self.c.setFont(CHINESE_FONT, 9.5); self.c.setFillColor(DARK_GRAY)
+        self.c.drawString(x+cw, self.y, con); self.y -= 15
+    def save(self): self.c.save(); print(f"Saved: {OUTPUT_PATH}")
 
-    def draw_section(self, title):
-        """绘制模块标题（加粗 + 下划线）"""
-        self.check_space(40)
-        self.c.setFont(CHINESE_BOLD, 13)
-        self.c.setFillColor(BLUE)
-        self.c.drawString(MARGIN_LEFT, self.y, title)
-        # 下划线
-        self.c.setStrokeColor(BLUE)
-        self.c.setLineWidth(1.5)
-        self.c.line(MARGIN_LEFT, self.y - 3, PAGE_W - MARGIN_RIGHT, self.y - 3)
-        self.y -= 20
+def main():
+    b = RB(OUTPUT_PATH)
+    b.name("\u9648\u7199\u8d24")
+    b.contact(["23xxchen@stu.edu.cn","+86 137-9061-3670","\u5e7f\u4e1c\u6c55\u5934","GitHub: github.com/23xxCh"])
 
-    def draw_entry_header(self, left_text, right_text, bold=True):
-        """绘制条目头部（左侧加粗文字，右侧日期/地点）"""
-        self.check_space(20)
-        font = CHINESE_BOLD if bold else CHINESE_FONT
-        self.c.setFont(font, 10.5)
-        self.c.setFillColor(BLACK)
-        self.c.drawString(MARGIN_LEFT + 4, self.y, left_text)
-        self.c.setFont(CHINESE_FONT, 9.5)
-        self.c.setFillColor(GRAY)
-        self.c.drawRightString(PAGE_W - MARGIN_RIGHT, self.y, right_text)
-        self.y -= 16
+    b.sec("\u6559\u80b2\u80cc\u666f")
+    b.hdr("\u6c55\u5934\u5927\u5b66  \u5de5\u5b66\u9662  \u667a\u80fd\u5236\u9020\u5de5\u7a0b","\u5e7f\u4e1c \u6c55\u5934")
+    b.sub("\u672c\u79d1  |  \u667a\u80fd\u5236\u9020\u5de5\u7a0b","2023.09 \u2013 2027.06\uff08\u9884\u8ba1\uff09")
+    b.bul("\u6838\u5fc3\u8bfe\u7a0b\uff1a\u7cbe\u76ca\u751f\u4ea7\u3001\u5148\u8fdb\u5236\u9020\u3001\u673a\u5668\u4eba\u6280\u672f\u3001\u4fe1\u53f7\u4e0e\u7cfb\u7edf\u3001\u4ea7\u54c1\u8bbe\u8ba1\u3001\u673a\u5668\u5b66\u4e60\u3001\u5d4c\u5165\u5f0f\u7cfb\u7edf\u3001\u673a\u5668\u89c6\u89c9\u539f\u7406")
+    b.bul("\u82f1\u8bed\u56db\u7ea7 524 \u5206\uff0c\u5177\u5907\u82f1\u6587\u6280\u672f\u6587\u6863\u9605\u8bfb\u80fd\u529b")
+    b.y -= 6
 
-    def draw_sub_header(self, left_text, right_text):
-        """绘制子头部（职位，日期）"""
-        self.c.setFont(CHINESE_FONT, 9.5)
-        self.c.setFillColor(DARK_GRAY)
-        self.c.drawString(MARGIN_LEFT + 4, self.y, left_text)
-        self.c.drawRightString(PAGE_W - MARGIN_RIGHT, self.y, right_text)
-        self.y -= 14
+    b.sec("\u5b9e\u4e60\u7ecf\u5386")
+    b.hdr("\u4f1f\u6613\u8fbe\uff08\u4e1c\u839e\uff09\u7535\u5b50\u4ea7\u54c1\u6709\u9650\u516c\u53f8","\u5e7f\u4e1c \u4e1c\u839e")
+    b.sub("\u673a\u68b0\u7ed3\u6784\u5b9e\u4e60\u751f","2025 \u6691\u671f")
+    b.bul("\u53c2\u4e0e\u73a9\u5177\u4ea7\u54c1\u4ea7\u7ebf\u5b9e\u4e60\uff0c\u4e86\u89e3\u6ce8\u5851\u3001\u7ec4\u88c5\u3001\u8d28\u68c0\u7b49\u5b8c\u6574\u751f\u4ea7\u6d41\u7a0b\uff0c\u6df1\u5165\u5b66\u4e60\u6a21\u5177\u7ed3\u6784\u4e0e\u6210\u578b\u5de5\u827a\u3002")
+    b.bul("\u4f7f\u7528 Creo \u8fdb\u884c\u96f6\u90e8\u4ef6 3D \u5efa\u6a21\u4e0e\u88c5\u914d\u8bbe\u8ba1\uff0c\u914d\u5408\u6a21\u5177\u77e5\u8bc6\u5b8c\u6210\u4ea7\u54c1\u7ed3\u6784\u4f18\u5316\u65b9\u6848\u3002")
+    b.bul("\u4ea7\u7ebf\u73b0\u573a\u89c2\u5bdf\u4e0e\u8bb0\u5f55\uff0c\u534f\u52a9\u5206\u6790\u751f\u4ea7\u74f6\u9888\uff0c\u63d0\u51fa\u57fa\u4e8e\u7cbe\u76ca\u751f\u4ea7\u7684\u6539\u8fdb\u5efa\u8bae\u3002")
+    b.y -= 6
 
-    def draw_bullet(self, text, indent=12):
-        """绘制 bullet 点"""
-        self.check_space(30)
-        x = MARGIN_LEFT + indent
+    b.sec("\u9879\u76ee\u7ecf\u5386")
+    # 项目1
+    b.hdr("\u4e00\u9274\u949f\u6c22 \u2014 \u57fa\u4e8e\u5149\u58f0\u8870\u8361\u5149\u8c31\u7684\u6c22\u6c14\u68c0\u6d4b\u6280\u672f","2025")
+    b.bul("\u6311\u6218\u676f\u5e7f\u4e1c\u7701\u7701\u8d5b\u4e00\u7b49\u5956\u9879\u76ee\u3002\u8d1f\u8d23\u5149\u58f0\u8870\u8361\u5149\u8c31\u68c0\u6d4b\u7cfb\u7edf\u7684\u786c\u4ef6\u642d\u5efa\u4e0e\u4fe1\u53f7\u5904\u7406\u3002")
+    b.bul("\u4f7f\u7528 MATLAB \u8fdb\u884c\u5149\u8c31\u4fe1\u53f7\u91c7\u96c6\u4e0e\u6570\u636e\u5206\u6790\uff0c\u4f18\u5316\u68c0\u6d4b\u7cbe\u5ea6\uff0c\u5b9e\u73b0 ppb \u7ea7\u6c22\u6c14\u6d53\u5ea6\u68c0\u6d4b\u3002")
+    b.bul("\u64b0\u5199\u6280\u672f\u6587\u6863\u4e0e\u5b9e\u9a8c\u62a5\u544a\uff0c\u53c2\u4e0e\u8def\u6f14\u7b54\u8fa9\uff0c\u4ece 200+ \u652f\u961f\u4f0d\u4e2d\u8131\u9896\u800c\u51fa\u3002")
+    b.y -= 6
+    # 项目2
+    b.hdr("\u57fa\u4e8e ROS2 \u7684\u6c22\u6c14\u68c0\u6d4b\u81ea\u4e3b\u5de1\u68c0\u5c0f\u8f66","2025")
+    b.bul("\u57fa\u4e8e ROS2 \u6846\u67b6\u5f00\u53d1\u81ea\u4e3b\u5de1\u68c0\u673a\u5668\u4eba\uff0c\u96c6\u6210\u6c22\u6c14\u4f20\u611f\u5668\u6a21\u5757\uff0c\u5b9e\u73b0\u5371\u9669\u73af\u5883\u81ea\u52a8\u68c0\u6d4b\u4e0e\u9884\u8b66\u3002")
+    b.bul("\u5b8c\u6210\u5bfc\u822a\u5efa\u56fe\uff08SLAM\uff09\u3001\u8def\u5f84\u89c4\u5212\u3001\u4f20\u611f\u5668\u878d\u5408\u7b49\u6838\u5fc3\u6a21\u5757\u5f00\u53d1\u4e0e\u8c03\u8bd5\u3002")
+    b.bul("\u786c\u4ef6\u9009\u578b\u4e0e\u5d4c\u5165\u5f0f\u7cfb\u7edf\u5f00\u53d1\uff0cESP32 \u4e3b\u63a7 + \u4f20\u611f\u5668\u901a\u4fe1\uff0cPCB \u753b\u677f\uff08\u5609\u7acb\u521b EDA\uff09\u3002")
+    b.y -= 6
+    # 项目3
+    b.hdr("AI Agent \u667a\u80fd\u5bf9\u8bdd\u673a\u5668\u4eba","2025")
+    b.bul("\u57fa\u4e8e\u5c0f\u667a AI \u4e0e ESP-Claw \u6846\u67b6\u5f00\u53d1\u667a\u80fd\u5bf9\u8bdd\u673a\u5668\u4eba\uff0c\u96c6\u6210\u8bed\u97f3\u8bc6\u522b\u4e0e\u5927\u6a21\u578b\u63a8\u7406\u80fd\u529b\u3002")
+    b.bul("\u5b9e\u73b0\u786c\u4ef6\u7aef\uff08ESP32\uff09\u4e0e\u4e91\u7aef\u5927\u6a21\u578b\u7684\u5b9e\u65f6\u901a\u4fe1\uff0c\u652f\u6301\u591a\u8f6e\u5bf9\u8bdd\u4e0e\u8bed\u97f3\u4ea4\u4e92\u3002")
+    b.bul("\u5177\u5907 AI Agent \u5f00\u53d1\u7ecf\u9a8c\uff0c\u719f\u6089 Claude Code\u3001Codex \u7b49 AI \u8f85\u52a9\u7f16\u7a0b\u5de5\u5177\u3002")
+    b.y -= 6
+    # 项目4
+    b.hdr("\u6570\u636e\u5206\u6790\u4e0e\u9884\u6d4b\u5efa\u6a21","2024")
+    b.bul("\u5bf9\u6c7d\u8f66\u9500\u552e\u6570\u636e\u8fdb\u884c\u6e05\u6d17\u3001\u7279\u5f81\u5de5\u7a0b\u4e0e\u53ef\u89c6\u5316\u5206\u6790\uff0c\u4f7f\u7528 Python \u6784\u5efa\u56de\u5f52\u9884\u6d4b\u6a21\u578b\u3002")
+    b.bul("\u57fa\u4e8e MATLAB \u5b8c\u6210\u6865\u6881\u9759\u529b\u5b66\u6709\u9650\u5143\u5206\u6790\uff08\u4f0f\u56fe\u8f6f\u4ef6\uff09\uff0c\u8f93\u51fa\u7ed3\u6784\u5e94\u529b\u5206\u5e03\u62a5\u544a\u3002")
+    b.bul("\u4f7f\u7528\u5609\u7acb\u521b EDA \u5b8c\u6210 PCB \u7535\u8def\u8bbe\u8ba1\u4e0e\u6253\u6837\uff0c\u4e86\u89e3\u535a\u9014\u8f6f\u4ef6\u5e76\u5b8c\u6210 PLC \u7a0b\u5e8f\u7f16\u5199\u3002")
+    b.y -= 6
 
-        # Bullet 符号
-        self.c.setFont(CHINESE_FONT, 8)
-        self.c.setFillColor(BLUE)
-        self.c.drawString(x - 8, self.y, "●")
+    b.sec("\u4e13\u4e1a\u6280\u80fd")
+    b.sk("CAD/\u5efa\u6a21\uff1a","SolidWorks\uff08\u719f\u7ec3\uff09\u3001Creo\uff08\u719f\u7ec3\uff09\u3001UG\uff08\u719f\u7ec3\uff09\u3001AutoCAD\uff08\u719f\u7ec3\uff09\u3001Moldex \u6a21\u6d41\u5206\u6790")
+    b.sk("\u7f16\u7a0b\u8bed\u8a00\uff1a","Python\uff08\u4e3b\u529b\uff09\u3001C/C++\uff08\u5d4c\u5165\u5f0f\uff09\u3001MATLAB\uff08\u6570\u636e\u5206\u6790\u4e0e\u5efa\u6a21\uff09")
+    b.sk("\u673a\u5668\u4eba\u5f00\u53d1\uff1a","ROS2 \u6846\u67b6\u3001SLAM \u5bfc\u822a\u5efa\u56fe\u3001\u8def\u5f84\u89c4\u5212\u3001\u4f20\u611f\u5668\u878d\u5408")
+    b.sk("\u5d4c\u5165\u5f0f\u786c\u4ef6\uff1a","ESP32 \u5f00\u53d1\u3001PCB \u8bbe\u8ba1\uff08\u5609\u7acb\u521b EDA\uff09\u3001PLC \u7f16\u7a0b\uff08\u535a\u9014\uff09")
+    b.sk("AI \u5de5\u5177\uff1a","Claude Code\u3001Codex \u7b49 AI \u8f85\u52a9\u7f16\u7a0b\u5de5\u5177\uff0cAI Agent \u5f00\u53d1\u7ecf\u9a8c")
+    b.sk("\u4eff\u771f\u5206\u6790\uff1a","\u4f0f\u56fe\u8f6f\u4ef6\uff08\u6709\u9650\u5143\u5206\u6790\uff09\u3001MATLAB \u4fe1\u53f7\u5904\u7406")
+    b.sk("\u529e\u516c\u8f6f\u4ef6\uff1a","Office \u5168\u5bb6\u6876\uff08Word/Excel/PPT \u719f\u7ec3\u4f7f\u7528\uff09")
+    b.y -= 6
 
-        # 文字（自动换行）
-        self.c.setFont(CHINESE_FONT, 9.5)
-        self.c.setFillColor(DARK_GRAY)
-        self._draw_wrapped_text(text, x, self.y, CONTENT_W - indent - 5, 13)
-        self.y -= 2  # 额外间距
+    b.sec("\u83b7\u5956\u4e0e\u8363\u8a89")
+    b.bul("\u6311\u6218\u676f\u5e7f\u4e1c\u7701\u7701\u8d5b\u4e00\u7b49\u5956 - \u4e00\u9274\u949f\u6c22\uff08\u5149\u58f0\u8870\u8361\u5149\u8c31\u6c22\u6c14\u68c0\u6d4b\u6280\u672f\uff09")
+    b.bul("GitHub \u4e2a\u4eba\u4ed3\u5e93 20+ \u4e2a\u9879\u76ee\uff0c\u6db5\u76d6\u673a\u5668\u4eba\u3001\u5d4c\u5165\u5f0f\u3001\u6570\u636e\u5206\u6790\u3001AI \u5e94\u7528\u7b49\u65b9\u5411")
+    b.y -= 6
 
-    def draw_skill_item(self, category, content):
-        """绘制技能条目"""
-        self.check_space(15)
-        x = MARGIN_LEFT + 12
-        self.c.setFont(CHINESE_FONT, 8)
-        self.c.setFillColor(BLUE)
-        self.c.drawString(x - 8, self.y, "●")
-        self.c.setFont(CHINESE_BOLD, 9.5)
-        self.c.setFillColor(BLACK)
-        self.c.drawString(x, self.y, category)
-        cat_w = self.c.stringWidth(category, CHINESE_BOLD, 9.5)
-        self.c.setFont(CHINESE_FONT, 9.5)
-        self.c.setFillColor(DARK_GRAY)
-        self.c.drawString(x + cat_w, self.y, content)
-        self.y -= 15
+    b.sec("\u81ea\u6211\u8bc4\u4ef7")
+    b.bul("\u667a\u80fd\u5236\u9020\u5de5\u7a0b\u4e13\u4e1a\u80cc\u666f\uff0c\u5177\u5907\u673a\u68b0\u7ed3\u6784\u8bbe\u8ba1 + \u5d4c\u5165\u5f0f\u5f00\u53d1 + AI \u5e94\u7528\u7684\u590d\u5408\u80fd\u529b\u3002")
+    b.bul("\u81ea\u9a71\u529b\u5f3a\uff0c\u5916\u5411\u5f00\u6717\uff0c\u56e2\u961f\u534f\u4f5c\u80fd\u529b\u4f18\u79c0\uff0c\u5584\u4e8e\u5c06\u6280\u672f\u65b9\u6848\u843d\u5730\u4e3a\u53ef\u6267\u884c\u7684\u4ea7\u54c1\u3002")
 
-    def _draw_wrapped_text(self, text, x, y, max_width, line_height):
-        """绘制自动换行文本"""
-        # 按字符逐个测量，找到断行点
-        current_line = ""
-        for char in text:
-            test_line = current_line + char
-            if self.c.stringWidth(test_line, CHINESE_FONT, 9.5) > max_width:
-                self.c.drawString(x, y, current_line)
-                y -= line_height
-                self.y -= line_height
-                current_line = char
-            else:
-                current_line = test_line
-        if current_line:
-            self.c.drawString(x, y, current_line)
-
-    def save(self):
-        self.c.save()
-        print(f"Saved to: {OUTPUT_PATH}")
-
-
-# ============================================================
-# 简历内容
-# ============================================================
-
-def build_resume():
-    builder = ResumeBuilder(OUTPUT_PATH)
-
-    # ---- 姓名 ----
-    builder.draw_name("陈广凯")
-
-    # ---- 联系方式 ----
-    builder.draw_contact([
-        "chen@example.com",
-        "+86 138-xxxx-xxxx",
-        "广东深圳",
-        "GitHub: github.com/23xxCh",
-    ])
-
-    # ---- 教育背景 ----
-    builder.draw_section("教育背景")
-
-    builder.draw_entry_header(
-        "深圳大学  计算机科学与技术学院",
-        "广东 深圳"
-    )
-    builder.draw_sub_header(
-        "本科  |  计算机科学与技术（人工智能方向）",
-        "2020.09 – 2024.06"
-    )
-    builder.draw_bullet("GPA: 3.5/4.0  |  核心课程：机器学习、深度学习、计算机视觉、自然语言处理、数据库系统")
-    builder.y -= 6
-
-    # ---- 项目经历 ----
-    builder.draw_section("项目经历")
-
-    # 项目 1
-    builder.draw_entry_header(
-        "工业知识助手 — 基于 RAG 的制造业智能问答系统",
-        "2026.05"
-    )
-    builder.draw_bullet("主导架构设计与开发，基于 Spring Boot + Vue 3 + Python RAG 引擎，构建覆盖设备手册、工艺参数、SOP 文档的智能问答平台。")
-    builder.draw_bullet("实现 Hybrid RRF 检索（Dense 向量 + BM25 关键词 + RRF 融合），技术文档检索精度相比单一方法提升 25%。")
-    builder.draw_bullet("开发工业文档专用解析器，支持 PDF 设备手册（故障代码表提取）、Excel 工艺参数表（结构化）、Word SOP 文档（步骤序列提取）。")
-    builder.draw_bullet("构建 Agent 工具层，对接 SCADA/MES/设备参数系统，支持 LLM Function Calling 实现设备参数实时查询。")
-    builder.draw_bullet("开发 Python RAG 引擎（Chroma + FastAPI），支持 SSE 流式对话、多轮上下文问题改写、引用溯源 [source: file, p.N]。")
-    builder.draw_bullet("Vue 3 前端：深色工业风格对话界面、QA 知识库管理、设备参数管理、故障代码管理，TypeScript 全栈类型安全。")
-    builder.draw_bullet("技术栈：Spring Boot 3 / Vue 3 / Python / Chroma / BM25 / FastAPI / Docker / PostgreSQL")
-    builder.y -= 6
-
-    # 项目 2
-    builder.draw_entry_header(
-        "智能质检系统 — 工业产品表面缺陷检测",
-        "2025.10"
-    )
-    builder.draw_bullet("基于 YOLOv8 + ResNet 构建视觉检测模型，实现产品表面划痕、色差、尺寸偏差自动检测，准确率达 96.3%。")
-    builder.draw_bullet("开发 Docker 容器化部署方案，Flask API 封装模型推理服务，对接 MES 系统质检模块实现数据闭环。")
-    builder.draw_bullet("编写检测 SOP 文档和运维手册，输出可复用的训练-部署-优化流程。")
-    builder.y -= 6
-
-    # 项目 3
-    builder.draw_entry_header(
-        "设备预测性维护平台 — 时序异常检测",
-        "2025.06"
-    )
-    builder.draw_bullet("基于 LSTM + Transformer 构建设备故障预测模型，利用振动/温度/电流传感器时序数据，实现故障提前 4 小时预警。")
-    builder.draw_bullet("对接 SCADA 系统自动采集设备数据，Redis 缓存实时状态，MySQL 存储历史记录，Docker Compose 一键部署。")
-    builder.draw_bullet("输出故障预测准确率 89%、维护计划 SOP，年维护成本降低约 30%。")
-    builder.y -= 6
-
-    # ---- 技能 ----
-    builder.draw_section("专业技能")
-
-    builder.draw_skill_item("编程语言：", "Python（主力）、Java、JavaScript/TypeScript、SQL")
-    builder.draw_skill_item("AI/ML 框架：", "PyTorch、TensorFlow、Scikit-learn、LangChain、LlamaIndex")
-    builder.draw_skill_item("大模型应用：", "RAG 架构、Agent/Function Calling、Prompt Engineering、模型微调")
-    builder.draw_skill_item("后端技术：", "Spring Boot、FastAPI、Docker、MySQL、Redis、PostgreSQL、Linux")
-    builder.draw_skill_item("前端技术：", "Vue 3、TypeScript、Element Plus、Vite")
-    builder.draw_skill_item("工业系统：", "MES/ERP/SCADA 对接经验、工业数据采集与处理")
-    builder.draw_skill_item("工具链：", "Git、Docker Compose、Maven、pnpm、Nginx")
-    builder.y -= 6
-
-    # ---- 自我评价 ----
-    builder.draw_section("自我评价")
-    builder.draw_bullet("2 年制造业 AI 项目落地经验，熟悉生产、质检、设备运维等制造场景的 AI 需求调研、方案设计与部署上线全流程。")
-    builder.draw_bullet("具备跨部门沟通协作能力，能快速响应并推进项目落地，善于将复杂技术方案转化为可执行的 SOP 文档。")
-
-    builder.save()
-
+    b.save()
 
 if __name__ == "__main__":
-    build_resume()
+    main()
