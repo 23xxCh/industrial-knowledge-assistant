@@ -14,14 +14,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from rag_core import (
+from .rag_core import (
     RAGConfig,
     EvalResult,
     compute_citation_rate,
     compute_precision_at_k,
     export_eval_results,
 )
-from query import RAGEngine
+from .query import RAGEngine
 
 
 # ============================================================

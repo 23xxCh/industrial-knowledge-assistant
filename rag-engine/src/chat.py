@@ -21,9 +21,9 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
-from rag_core import RAGConfig
-from query import RAGEngine
-from ingest import IngestPipeline
+from .rag_core import RAGConfig
+from .query import RAGEngine
+from .ingest import IngestPipeline
 
 # ============================================================
 # 初始化

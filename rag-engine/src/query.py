@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from rag_core import (
+from .rag_core import (
     RAGConfig,
     RetrievalResult,
     reciprocal_rank_fusion,
@@ -21,7 +21,7 @@ from rag_core import (
     INDUSTRIAL_SYSTEM_PROMPT,
 )
 
-from ingest import EmbeddingGenerator, ChromaStore, BM25Index
+from .ingest import EmbeddingGenerator, ChromaStore, BM25Index
 
 
 # ============================================================

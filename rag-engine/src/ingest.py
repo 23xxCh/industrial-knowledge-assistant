@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from rag_core import (
+from .rag_core import (
     RAGConfig,
     DocumentChunk,
     extract_text_from_pdf,
