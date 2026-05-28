@@ -1,6 +1,8 @@
 import { createWebHistory, createRouter, RouteRecordRaw } from 'vue-router';
 /* Layout */
 import Layout from '@/layout/index.vue';
+/* 工业知识库模块 */
+import industrialRoutes from './modules/industrial';
 
 /**
  * Note: 路由配置项
@@ -134,6 +136,9 @@ export const constantRoutes: RouteRecordRaw[] = [
   }
 ];
 
+// 工业知识库路由
+export const industrialModuleRoutes: RouteRecordRaw[] = industrialRoutes;
+
 // 动态路由，基于用户权限动态去加载
 export const dynamicRoutes: RouteRecordRaw[] = [
   {
@@ -199,7 +204,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
  */
 const router = createRouter({
   history: createWebHistory(import.meta.env.VITE_APP_CONTEXT_PATH),
-  routes: constantRoutes,
+  routes: [...constantRoutes, ...industrialRoutes],
   // 刷新时，滚动条位置还原
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {

@@ -10,16 +10,9 @@ chromadb>=0.5.0
 
 # Embedding 模型
 openai>=1.50.0
-# sentence-transformers>=3.0.0  # 本地 Embedding（可选）
 
 # BM25 稀疏检索
 rank-bm25>=0.2.2
-
-# LangChain（可选，用于 LCEL 编排）
-langchain>=0.3.0
-langchain-community>=0.3.0
-langchain-openai>=0.2.0
-langchain-text-splitters>=0.3.0
 
 # 评估
 ragas>=0.2.0
@@ -29,6 +22,7 @@ python-dotenv>=1.0.0
 tqdm>=4.66.0
 pandas>=2.2.0
 
-# Web 服务（可选）
+# Web 服务
 fastapi>=0.115.0
 uvicorn>=0.30.0
+python-multipart>=0.0.9
